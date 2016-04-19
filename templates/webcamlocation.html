@@ -1,0 +1,163 @@
+<html>
+<head>
+	<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script src='https://www.google.com/recaptcha/api.js'></script>
+<script src='/static/GeoLight.js'></script>
+<script> var dates= {{session.dates|tojson}}; var vals={{session.vals|tojson}};
+	var day_length = dates[dates.length-1]-dates[0];
+	var ndates = [];
+	dummy = []
+	for (i=0;i<dates.length;i++){
+		ndates[i]=new Date(dates[i]*1000);
+		dummy[i]=null;
+	}
+function zip(arrays) {
+    return arrays[0].map(function(_,i){
+        return arrays.map(function(array){return array[i]})
+    });
+}
+	var bdata =zip([ndates,dummy,vals]);
+	</script>
+<script type="text/javascript" src="http://www.google.com/jsapi?.js"></script>
+<script type="text/javascript">
+google.load('visualization', '1', {packages: ['corechart','map'], callback: drawChart});
+      var chart;
+      var selector = 0; //0->sunrise
+      var sunrise = undefined;
+      var sunset = undefined;
+      function click(e){
+      	console.log(e);
+      	cli=chart.getChartLayoutInterface();
+      	bb = cli.getChartAreaBoundingBox();
+      	l = e.x-bb.left;
+      	t = e.y-bb.top;
+      	if (l<0 || t<0){
+      		return;
+      	}
+      	if(selector==0){
+      		sunrise = l/bb.width;
+      		sunrise = dates[0]+(sunrise*day_length);
+      		sunrise = sunrise*1000;
+      		data.setValue(annotationRowIndex, 0, new Date(sunrise));
+      		console.log(data);
+      	}
+      	else{
+      		sunset = l/bb.width;
+      		sunset = dates[0]+(sunset*day_length);
+      		sunset=sunset*1000;
+      		data.setValue(annotationRowIndex2, 0, new Date(sunset));
+
+      	}
+      	updateUI();
+      }
+      var map,loc;
+      function updateUI(){
+      	console.log('update');
+      	chart.draw(data,options);
+      	if (sunrise!=undefined & sunset!=undefined){
+      		loc = coord(sunrise/1000,sunset/1000,1)
+      		
+      		loc.lon= ((loc.lon-180) %360)+180;
+      		//loc.lat=Math.asin(Math.sin((loc.lat/180.0)*3.14159265)) * (180.0/3.14159265);
+      		map_data.setValue(map_data.getNumberOfRows()-1,0,loc.lat);
+      		map_data.setValue(map_data.getNumberOfRows()-1,1,loc.lon);
+        	map.draw(map_data, {showTip: true,zoomLevel: 6});
+      	}
+
+      }
+      var map_data;
+      var data, annotationRowIndex,annotationRowIndex2,options;
+      function drawChart() {
+      	 map_data = google.visualization.arrayToDataTable([
+          ['Lat', 'Long'],
+          [0, 0]
+        ]);
+
+map = new google.visualization.Map(document.getElementById('map_div'));
+	       data = new google.visualization.DataTable();
+	      data.addColumn('date', 'Date');
+	      data.addColumn({type: 'string', role: 'annotation'});
+    	  data.addColumn('number', 'Obs');
+	      data.addRows(bdata);
+	      data.addRow([null,"Sunrise",null]);
+	      data.addRow([null,"Sunset",null]);
+	       annotationRowIndex = data.getNumberOfRows() - 2;
+	       annotationRowIndex2=data.getNumberOfRows() - 1;
+	       options = {
+	        hAxis: {
+	          title: 'Time',
+			  ticks: [ndates[0], ndates[ndates.length-1]],
+			  format: 'd MMM HH:mm(UTC)'
+	        },
+	        vAxis: {
+	          title: 'Observed Brightness'
+	        },
+	        legend:{
+	        	position:'none'
+	        },
+ 		annotation: {
+            1: {
+                // set the style of the domain column annotations to "line"
+                style: 'line'
+            },
+            2: {
+                // set the style of the domain column annotations to "line"
+                style: 'line'
+            }
+	        }};
+
+	       container=document.getElementById('chart_div');
+	      chart = new google.visualization.LineChart(container);
+	      google.visualization.events.addListener(chart,'click',click);
+	       chart.draw(data, options);
+    }
+    </script>
+    <script type="text/javascript">
+    	window.onload=function(){
+    		$('.btn').click(function(){
+    			console.log('Buttonclick');
+    			$('.btn').attr('class','btn');
+    			$(this).attr('class','btn active');
+    			console.log($(this).attr('id'));
+    			if ($(this).attr('id')=="sunrise"){
+    				selector=0;
+    			}
+    			else{
+    				selector=1;
+    			}
+		});
+    	}
+    </script>
+
+<title>Web Camera Location|View Results</title>
+
+</head>
+<body>
+<div class='container-fluid'>
+	<div class="row-fluid"><h1>Web Camera Location Finder</h1>
+	<span> Here are {{session.vals|length}} observations made for the below webcam.</div>
+	<div class="row-fluid">
+	Click on the chart to pinpoint sunrise and sunset. Toggle which one your selecting with the buttons to the right.
+	<div class="btn-group">
+		  <button class="btn active" id="sunrise" >Sunrise</button>
+		  <button class="btn" id="sunset">Sunset</button>
+		  		
+	</div>
+	</div>
+	<div class="row-fluid"><div id="chart_div"></div></div>
+	<div class="row-fluid"><h2>Computed Location</h2><div id="map_div">Please select the sunrise and sunset times to find location.</div></div>
+	<div class="row-fluid">
+		<h2> Live feed</h2>
+		<img src="{{session.url|e}}"/>
+	</div>
+	
+	</div>
+</body>
+</html>

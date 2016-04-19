@@ -1,0 +1,4 @@
+cron:
+- description: poll webcams
+  url: /cronny
+  schedule: every 5 minutes

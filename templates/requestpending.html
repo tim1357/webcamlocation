@@ -1,0 +1,26 @@
+<html>
+<head>
+	<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script src='https://www.google.com/recaptcha/api.js'></script>
+
+<title>Web Camera Location|Request submitted</title>
+
+</head>
+<body>
+<div class='container-fluid'>
+	<div class="row-fluid"><h1>Web Camera Location Finder</h1>
+	<span> We'll monitor this web camera for 24 hours, to ovserve one sunset and sunrise. Check back <a href="/?url={{session.url|urlencode}}"> here</a> to monitor progress and see results. (The webcamera feed should appear below)</span></div>
+	<div class="row-fluid">
+		<img src="{{session.url|e}}"/>
+	</div>
+	
+	</div>
+</body>
+</html>
